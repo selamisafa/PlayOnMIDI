@@ -4,22 +4,29 @@ import random
 walls = []
 
 blockPrefabs = [
-
     [[0,0],[1,0],
-    [0,1],[1,1]],
+     [0,1],[1,1]],
     
     [[0,0],[1,0],[2,0],[3,0]],
     
-    [       [1,0],
-    [0,1],[1,1],[2,1]],
+    [      [1,0],
+     [0,1],[1,1],[2,1]],
     
     [[0,0],
-    [0,1],
-    [0,2],
-    [0,3],[1,3]],
+     [0,1],
+     [0,2],
+     [0,3],[1,3]],
+
+    [      [1,0],
+           [1,1],
+           [1,2],
+     [0,3],[1,3]],
     
     [[0,0],[1,0],
-              [1,1],[2,1]],
+           [1,1],[2,1]],
+
+    [      [1,0],[2,0],
+     [0,1],[1,1]]
 ]
 
 board = {'h': 8, 'l': 8}
@@ -45,20 +52,42 @@ def Move(direction):
         horizontalSpeed = 0
         
     prediction = deepcopy(currentBlock)
-    for blocks in prediction
+    for blocks in prediction:
         blocks[0] += horizontalSpeed
         blocks[1] += gravity
     
-    sideways = CanMoveSideways(prediction)
-    if CanMoveDown(prediction):
-        for blocks in currentBlock
-            blocks[1] += horizontalSpeed
+    horizontal = CanMoveSideways(prediction)
+    vertical = CanMoveDown(prediction)
+
+    if horizontal and vertical:
+        for blocks in currentBlock:
+            blocks[0] += horizontalSpeed
+            blocks[1] += gravity
+    elif horizontal:
+        for blocks in currentBlock:
+            blocks[0] += horizontalSpeed
+            SettleBlock()
+            return
+    elif vertical:
+        for blocks in currentBlock:
+            blocks[1] += gravity
+    else:
+        SettleBlock()
+        return
+
+def SettleBlock():
+    for blocks in currentBlock:
+            oldBlocks.append(blocks)
+    PickBlock()
 
 def PickBlock():
     global currentBlock
     
     currentBlock = deepcopy(blockPrefabs[random.randrange(len(blockPrefabs))])
 
+    for blocks in currentBlock:
+        blocks[0] += 2
+
 def CanMoveDown(prediction):
     for block in prediction:
         if block[1] >= board["h"]:
@@ -67,15 +96,7 @@ def CanMoveDown(prediction):
             return False
     return True
 
-def 
-def CanMoveDown(prediction):
-    for block in prediction:
-        if block[1] >= board["h"]:
-            return False
-        elif block in oldBlocks:
-            return False
-    return True
-    (prediction):
+def CanMoveSideways(prediction):
     for block in prediction:
         if block[0] >= board["l"]:
             return False
