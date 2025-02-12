@@ -1,6 +1,8 @@
 from copy import deepcopy
 import random
 
+#Fixed some bugs on the other versions
+
 snake = [[3, 3], [4, 3], [4, 4], [4, 5]]
 foods = []
 board = {'h': 8, 'l': 8, 'Wrap Around': False}

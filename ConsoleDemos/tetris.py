@@ -4,29 +4,25 @@ import random
 walls = []
 
 blockPrefabs = [
+    [[0,0],[1,0],[2,0],[3,0]],
+
+    [[0,0],
+     [0,1],[1,1],[2,1]],
+
+    [            [2,0],
+     [0,1],[1,1],[2,1]],
+
     [[0,0],[1,0],
      [0,1],[1,1]],
-    
-    [[0,0],[1,0],[2,0],[3,0]],
-    
-    [      [1,0],
-     [0,1],[1,1],[2,1]],
-    
-    [[0,0],
-     [0,1],
-     [0,2],
-     [0,3],[1,3]],
-
-    [      [1,0],
-           [1,1],
-           [1,2],
-     [0,3],[1,3]],
-    
-    [[0,0],[1,0],
-           [1,1],[2,1]],
 
     [      [1,0],[2,0],
      [0,1],[1,1]]
+
+    [      [1,0],
+     [0,1],[1,1],[2,1]],
+    
+    [[0,0],[1,0],
+           [1,1],[2,1]],
 ]
 
 board = {'h': 8, 'l': 8}
@@ -52,41 +48,56 @@ def Move(direction):
         horizontalSpeed = 0
         
     prediction = deepcopy(currentBlock)
-    for blocks in prediction:
-        blocks[0] += horizontalSpeed
-        blocks[1] += gravity
+    for block in prediction:
+        block[0] += horizontalSpeed
+        block[1] += gravity
     
     horizontal = CanMoveSideways(prediction)
     vertical = CanMoveDown(prediction)
 
     if horizontal and vertical:
-        for blocks in currentBlock:
-            blocks[0] += horizontalSpeed
-            blocks[1] += gravity
+        for block in currentBlock:
+            block[0] += horizontalSpeed
+            block[1] += gravity
     elif horizontal:
-        for blocks in currentBlock:
-            blocks[0] += horizontalSpeed
+        for block in currentBlock:
+            block[0] += horizontalSpeed
             SettleBlock()
             return
     elif vertical:
-        for blocks in currentBlock:
-            blocks[1] += gravity
+        for block in currentBlock:
+            block[1] += gravity
     else:
         SettleBlock()
         return
 
 def SettleBlock():
-    for blocks in currentBlock:
-            oldBlocks.append(blocks)
+    for block in currentBlock:
+        oldBlocks.append(block)
+
+    CleanRows()
     PickBlock()
+
+def CleanRows():
+    #Dont have any idea for now
+    Render()
+
+def RotateBlocks():
+    #Dont have any idea for now
+    print("Ratet")
 
 def PickBlock():
     global currentBlock
-    
+    global isGameOver
+
     currentBlock = deepcopy(blockPrefabs[random.randrange(len(blockPrefabs))])
 
-    for blocks in currentBlock:
-        blocks[0] += 2
+    for block in currentBlock:
+        block[0] += 2
+        if block in oldBlocks:
+            isGameOver = True
+            return 
+    Render()
 
 def CanMoveDown(prediction):
     for block in prediction:
@@ -106,7 +117,6 @@ def CanMoveSideways(prediction):
     
 def Render():
     global currentBoard
-    global isGameOver
 
     currentBoard = [[]]
     for l in range(board['l']):
@@ -134,5 +144,6 @@ def Update():
     Render()
     Update()
 
+PickBlock()
 Render()
 Update()
