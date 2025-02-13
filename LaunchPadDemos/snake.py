@@ -22,13 +22,13 @@ isGameOver = False
 currentBoard = []
 foods = []
 lastButton = ""
-speed = 400
+gameSpeed = 400
 
 #I might comment on the rest too but cant promise
 def Move(direction):
     global lastDirection
     global isGameOver
-    global speed
+    global gameSpeed
 
     if isGameOver:
         return
@@ -70,7 +70,7 @@ def Move(direction):
             snake.append(lastPos)
             if lastPos in foods:
                 foods.remove(lastPos)
-                speed -= 10
+                gameSpeed -= 10
             else:
                 print("test")
                 snake.pop(0)
@@ -176,7 +176,7 @@ def Update():
         Render()
 
     if not isGameOver:
-        time.wait(speed)
+        time.wait(gameSpeed)
         ButtonChecker()
         Move(lastButton)
 
@@ -196,6 +196,5 @@ def GameOverAnimation():
     
 def Text_Animation(text):
     lp.LedCtrlString(text, 3,0, direction = -1, waitms = 100)
-
 
 Update()
