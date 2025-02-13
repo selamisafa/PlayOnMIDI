@@ -11,9 +11,9 @@ lp.LedCtrlXY(7, 1, 3, 0)
 lp.LedCtrlXY(0, 8, 3, 0)
 lp.LedCtrlXY(7, 8, 3, 0)"""
 
-while True:
+"""while True:
     if len(lp.ButtonStateXY()) > 0:
         print(*lp.ButtonStateXY(), sep= '\n')
-    time.wait(1000)
+    time.wait(1000)"""
 
-#lp.Close()
+lp.Close()

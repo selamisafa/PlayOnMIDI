@@ -1,5 +1,12 @@
 from copy import deepcopy
+from pygame import time
 import random
+import launchpad_py
+
+#Launchpad S Setup
+lp = launchpad_py.Launchpad()
+lp.Open(0)
+lp.Reset()
 
 walls = []
 
@@ -33,6 +40,8 @@ currentBlock =[]
 gravity = 1
 horizontalSpeed = 0
 isGameOver = False
+lastButton = ""
+gameSpeed = 1300
 
 def Move(direction):
     global isGameOver
@@ -40,6 +49,9 @@ def Move(direction):
     if not isGameOver:
         if currentBlock == []:
             PickBlock()
+    else:
+        GameOverAnimation()
+        return
     
     if direction == "left":
         horizontalSpeed = -1
@@ -72,6 +84,33 @@ def Move(direction):
         SettleBlock()
         return
 
+def MoveOnlyHorizontal(direction):
+    global isGameOver
+    
+    if not isGameOver:
+        if currentBlock == []:
+            PickBlock()
+    else:
+        GameOverAnimation()
+        return
+    
+    if direction == "left":
+        horizontalSpeed = -1
+    elif direction == "right":
+        horizontalSpeed = 1
+    else:
+        horizontalSpeed = 0
+        
+    prediction = deepcopy(currentBlock)
+    for block in prediction:
+        block[0] += horizontalSpeed
+    
+    horizontal = CanMoveSideways(prediction)
+
+    if horizontal:
+        for block in currentBlock:
+            block[0] += horizontalSpeed
+
 def SettleBlock():
     for block in currentBlock:
         oldBlocks.append(block)
@@ -85,12 +124,14 @@ def CleanRows():
     global oldBlocks
     global rowBlockCounts
 
+    newOldBlocks = []
+
     i = 0
     for row in rowBlockCounts:
         if row >= board["l"]:
             row = 0
+            rowBlockCounts[i] = 0
             
-            newOldBlocks = []
             for block in oldBlocks:
                 if block[1] != i:
                     if block[1] < i:
@@ -104,10 +145,6 @@ def CleanRows():
 
     Render()
 
-def RotateBlocks():
-    #Dont have any idea for now
-    print("Ratet")
-
 def PickBlock():
     global currentBlock
     global isGameOver
@@ -118,6 +155,7 @@ def PickBlock():
         block[0] += 2
         if block in oldBlocks:
             isGameOver = True
+            GameOverAnimation()
             return 
     Render()
 
@@ -132,6 +170,8 @@ def CanMoveDown(prediction):
 def CanMoveSideways(prediction):
     for block in prediction:
         if block[0] >= board["l"]:
+            return False
+        elif block[0] < 0:
             return False
         elif block in oldBlocks:
             return False
@@ -156,7 +196,18 @@ def Render():
             
     print("\033[H\033[J", end="")
     print(*currentBoard, sep = "\n")
-    print(*RotateBlock(currentBlock, True))
+
+    RenderOnLaunchpad()
+
+def RenderOnLaunchpad():
+    for x in range(board['l']):
+        for y in range(board['h']):
+            if currentBoard[x][y] == '#':
+                lp.LedCtrlXY(y, x+1, 0, 3)
+            elif currentBoard[x][y] == 'O':
+                lp.LedCtrlXY(y, x+1, 3, 3)
+            else:
+                lp.LedCtrlXY(y, x+1, 0, 0)
 
 def RotateBlock(block, clockwise):
     pivot = block[0]
@@ -174,16 +225,61 @@ def RotateBlock(block, clockwise):
         rotated_block.append([new_x, new_y])
     
     return rotated_block    
+
+def ButtonChecker():
+    global lastButton
+    button = lp.ButtonStateXY()
+    if len(button) > 0:
+        button.pop()
+        if [0,0] == button:
+            lastButton = "up"
+        elif [1,0] == button:
+            lastButton = "down"
+        elif [2,0] == button:
+            lastButton = "left"
+        elif [3,0] == button:
+            lastButton = "right"
+        else:
+            lastButton = ""
+
+        if lastButton != "":
+            lp.ButtonFlush()
+    else:
+        lastButton = ""
     
+    lp.ButtonFlush()
+
 def Update():
     global isGameOver
     if isGameOver:
+        GameOverAnimation()
         return
+    else:
+        splitCount = 9
+        split = int(gameSpeed/splitCount)
+        
+        for timeBite in range(splitCount-1):
+            time.wait(split)
+            ButtonChecker()
+            MoveOnlyHorizontal(lastButton)
+            Render()
 
-    Move(input('Direction?'))
-    Render()
-    Update()
+        time.wait(split)
+        ButtonChecker()
+        Move(lastButton)
+        Render()
 
+        Update()
+
+def GameOverAnimation():
+    for block in oldBlocks:
+        lp.LedCtrlXY(block[0], block[1]+1, 3, 0)
+        time.wait(50)
+    
+    Text_Animation("GAME OVER!")
+    
+def Text_Animation(text):
+    lp.LedCtrlString(text, 3,0, direction = -1, waitms = 100)
 
 for l in range(board['l']):
     rowBlockCounts.append(0)
