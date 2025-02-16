@@ -84,6 +84,30 @@ def Move(direction):
         SettleBlock()
         return
 
+def MoveOnlyDown():
+    global isGameOver
+    global currentBlock
+
+    prediction = deepcopy(currentBlock)
+    for block in prediction:
+        block[1] += gravity
+    
+    vertical = CanMoveDown(prediction)
+
+    while vertical:
+        for block in prediction:
+            block[1] += gravity
+    
+        vertical = CanMoveDown(prediction)
+
+    print(vertical)
+    for block in prediction:
+        block[1] -= gravity
+    
+    currentBlock = deepcopy(prediction)
+
+    SettleBlock()
+
 def MoveOnlyHorizontal(direction):
     global isGameOver
     
@@ -112,21 +136,26 @@ def MoveOnlyHorizontal(direction):
             block[0] += horizontalSpeed
 
 def SettleBlock():
+    global rowBlockCounts
+    global currentBlock
+    global oldBlocks
+
     for block in currentBlock:
         oldBlocks.append(block)
         rowBlockCounts[block[1]] += 1
 
     CleanRows()
     PickBlock()
+    Render()
 
 def CleanRows():
-    #Dont have any idea for now
     global oldBlocks
     global rowBlockCounts
 
     newOldBlocks = []
 
     i = 0
+
     for row in rowBlockCounts:
         if row >= board["l"]:
             row = 0
@@ -138,7 +167,7 @@ def CleanRows():
                         block[1] += 1
                     newOldBlocks.append(block)
 
-            oldBlocks = newOldBlocks
+            oldBlocks = deepcopy(newOldBlocks)
             
         #animation?
         i += 1
@@ -210,10 +239,10 @@ def RenderOnLaunchpad():
                 lp.LedCtrlXY(y, x+1, 0, 0)
 
 def RotateBlock(block, clockwise):
-    pivot = block[0]
+    pivot = block[1]
     cx, cy = pivot
 
-    rotated_block = []
+    rotatedBlock = []
     for x, y in block:
         if clockwise:
             new_x = cx - (y - cy)  
@@ -222,19 +251,38 @@ def RotateBlock(block, clockwise):
             new_x = cx + (y - cy)
             new_y = cy - (x - cx)
         
-        rotated_block.append([new_x, new_y])
+        rotatedBlock.append([new_x, new_y])
     
-    return rotated_block    
+    return rotatedBlock    
+
+def RotateBlockClockwise():
+    global currentBlock
+
+    pivot = currentBlock[0]
+    cx, cy = pivot
+
+    rotatedBlock = []
+    for x, y in currentBlock:
+        new_x = cx - (y - cy)  
+        new_y = cy + (x - cx)  
+        
+        rotatedBlock.append([new_x, new_y])
+    
+    currentBlock = deepcopy(rotatedBlock)  
+    Render() 
 
 def ButtonChecker():
     global lastButton
+
     button = lp.ButtonStateXY()
     if len(button) > 0:
         button.pop()
         if [0,0] == button:
             lastButton = "up"
+            RotateBlockClockwise()
         elif [1,0] == button:
             lastButton = "down"
+            MoveOnlyDown()
         elif [2,0] == button:
             lastButton = "left"
         elif [3,0] == button:
