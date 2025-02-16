@@ -39,6 +39,8 @@ def start_script(name):
     except Exception as e:
         messagebox.showerror("Error", f"Error starting {name}:\n{e}")
 
+from pygame import time
+import launchpad_py
 
 def stop_script(name):
     if name in processes and processes[name].poll() is None:
@@ -47,6 +49,13 @@ def stop_script(name):
         status_labels[name].config(text="Stopped", fg="red")
     else:
         messagebox.showinfo("Info", f"{name} is not running!")
+
+    #Launchpad S Setup
+    lp = launchpad_py.Launchpad()
+    lp.Open(0)
+    lp.Reset()
+
+    lp.Close()
 
 def create_gui():
     root = tk.Tk()
